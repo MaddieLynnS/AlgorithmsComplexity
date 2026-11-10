@@ -1,0 +1,33 @@
+1. Define the checker precisely. What does True mean, and what does False mean? Distinguish a guaranteed detection from a proof that the product is correct.
+For this checker, False means that there was an iteration where the r vector produced an inconsistency between ABr and Cr. Since an error is found, we know definitively that the product of A and B does not equal C. True is simply returned when all repetitions have completed, meaning that the random searching did not return any instances that were different. That does not mean that the product is definitively correct though because the random selections mean that an error could exist but was not selected. So True just means that an error wasn't found, but an error could still exist.
+
+
+2. Explain one repetition of Freivalds' algorithm: choose a random binary vector r, compute B r, compute A(B r), compute C r, and compare the resulting vectors modulo 2.
+Let's say our vector for r = [1,0]. A = [[0,0],[0,0]] B = [[1,1],[1,1]], C =[ [0,1] [1,0]]. Br = 1(1) + 1(0) = 1, 1(1) + 1(0) = 1. Modulo 2 results in [1,1]. A(B r) = 0(1) + 0(1) = 0, 0(1) + 0(1) = 0, so modulo 2 results in [0,0]. Cr = 0(1) + 1(0) = 0, 1(1) + 0(0) = 1. Modulo 2 results in [0,1]. Since [0,0] doesn't equal [0,1], the two are not the same.
+
+
+3. Explain why there are no false negatives when A times B equals C, using associativity of matrix multiplication.
+This algorition only returns False if there is an actual discrepancy between ABr and Cr and returns True for everything else. Introducing the random vector r will let us streamline the checking process, but the calculation is ultimately the same thanks to the associativity of matrix multiplication. Multiplying both sides by the same random vector should result in a zero matrix when comparing the differences. If there is ever a one in that difference matrix, that means there is an actual difference and a False will be returned.
+
+
+
+4. State the false-positive probability bound when A times B is not equal to C. Explain the role of a nonzero difference matrix and why at least half of binary vectors detect the error.
+The false-positive probability is 1/2 for a single repetition. If there is a difference between AB and their supposed product C, that means the resulting matrix will have at least one 1 in it, which shouldn't happen. This nonzero matrix immediately indicates the two aren't equal and returns rather than continuing. Half will detect that error because the simplification of multiplying by r and using modulus 2 will simplify the data to 0 or 1, meaning that half the data could potentially be disregarded, so the error would not be caught.
+
+
+5. Explain why independent repetitions reduce the probability that an incorrect product passes all checks to at most 2^(-k), where k is the number of repetitions.
+Since random vectors are generated with each repetition, there are more values being checked each time, so the probability decreases exponentially. A trial like this has no greater than 1/2 probability of failing, meaning every additional run thereafter results in multiplication by 1/2. This results in Pr[2^(-k)]. (three runs, for instance, would result in 1/8, which would be rewritten as 1/2^3)
+
+6. Let n be the matrix dimension and k the number of repetitions. Count the matrix-vector products in one repetition and justify T(n, k) = Theta(k n^2). State the additional space used.
+Each calculation takes n^2 work, since it requires loops over r and the other matrix to get the resulting matrix of length n. This is done for calculating B * r, then for A * Br, and then for C * r Since it's only done three times, however, which is constant, we can represent that with k in our resulting time complexity. That means that the result for incoming matrices of length n will result in Theta(k n^2) time complexity
+Additional space used is Theta(n), since we will be making a r vector of length n for use in our calculations on both sides. Those calculations are then compared and then reset after the repetition.
+
+
+7. Explain when this algorithm is useful, such as verifying a claimed matrix product faster than recomputing the full product, and discuss at least two limitations or tradeoffs.
+If we have already put in the time to compute a product and perhaps have stored it somewhere in memory, we don't want to waste time recomputing it. Instead, we can just use this algorithm to quickly verify that it is the product and reduce that time complexity. However, there is a limitation to this in the margin of error. Since we are using randomness to speed up our verification, we aren't checking every calculation over again, meaning there is a chance we don't check a value that is errant. So while it is fast, there is a chance of the positive True being incorrect. It is definitely faster, and multiple repetitions decrease the probability for error, so it remains a useful option for situations where speed is required.
+
+8. Classify the algorithm as Monte Carlo or Las Vegas and explain why. Discuss why reproducible seeded randomness is useful for tests even though independent randomness is required in the probability analysis.
+This is a classic Monte Carlo algorithm example. It emphasizes speed over 100% accuracy, meaning that there is a small margin of error here. However, Vegas algorithms don't allow for this margin of error at all and instead require answers to be 100% accurate. Since we want to account for a small margin of error while returning a reasonably accurate result quickly, this algorithm fits the criteria for a Monte Carlo algorithm. Though we use randomness for assessment, it is nice to use seeded randomness because we will consistently get the same sequence of randomness, which means our tests will be more reliable. It is difficult to debug code that is different with every run (or in this case, maybe even every iteration) so reliable/reproducible randomness removes that headache and results in tests that will actually pass with every run.
+
+
+AI Statement: I did use AI to help with this assignment. I used it to remind myself how to do matrix math with modulo 2 involved as well as to understand the difference between Monte Carlo and Las Vegas algorithms. I struggle remembering correct syntax for certain operations in python, so I also used it for reminders on list operations, such as how to check whether there were any values in A, B, or C that were not 0 or 1. Lastly, I used it for help in generating some of the additional test cases, especially since some of the tests already existing seemed to meet the criteria mentioned for test cases.
